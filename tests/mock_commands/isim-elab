@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+import os
+import sys
+
+os.makedirs(os.path.dirname('isim_work/a.out.so'), exist_ok=True)
+with open('isim_work/a.out.so', 'a'):
+    os.utime('isim_work/a.out.so', None)
+
+with open("isim-elab.cmd", "w") as f:
+    f.write(" ".join(sys.argv[1:]) + "\n")

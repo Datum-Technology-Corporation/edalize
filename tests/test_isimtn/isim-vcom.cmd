@@ -1,0 +1,1 @@
+-work isim_work -lib work -timescale 1ns/1ps -uvm 1.2 some isim_vcom_options -f test_isimtn_0.vhdl.f

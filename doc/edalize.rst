@@ -52,6 +52,14 @@ edalize.isim module
     :undoc-members:
     :show-inheritance:
 
+edalize.isimtn module
+---------------------
+
+.. automodule:: edalize.isimtn
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 edalize.modelsim module
 -----------------------
 
