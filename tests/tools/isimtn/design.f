@@ -1,0 +1,9 @@
++incdir+.
++define+vlogdefine_bool=1
++define+vlogdefine_int=42
++define+vlogdefine_str=hello
+sv_file.sv
+vlog_file.v
+vlog_with_define.v
+vlog05_file.v
+another_sv_file.sv

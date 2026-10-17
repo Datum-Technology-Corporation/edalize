@@ -1,0 +1,1 @@
+-image isim_work/a.out.so +sv_lib=libdpi.so +sv_lib=isimtn_dpi.so +sv_lib=../../../tb/model.so +plusarg_bool=1 +plusarg_int=42 +plusarg_str=hello
