@@ -22,7 +22,7 @@ $(TARGET).analysed: $(CONFIG_FILES)
 	touch $@
 
 $(TARGET).elab: $(TARGET).analysed $(DPI_LIB)
-	$(ISIM_ELAB) -work isim_work -lib work $(TOPLEVEL) -sir $(ISIM_COMMON) $(ISIM_DEFPARAMS) $(ISIM_ELAB_OPTIONS)
+	$(ISIM_ELAB) -work isim_work -lib work $(ISIM_LIBS) $(TOPLEVEL) -sir $(ISIM_COMMON) $(ISIM_DEFPARAMS) $(ISIM_ELAB_OPTIONS)
 	touch $@
 
 isimtn_dpi.so: $(DPI_SOURCES)
@@ -99,6 +99,11 @@ class Isimtn(Edatool):
 
         vlog_files = []
         vhdl_files = []
+        # VHDL by LOGICAL LIBRARY (a fileset's logical_name; `work` when none),
+        # in order of first appearance: iSim analyses each library with its
+        # own isim-vcom, seeing the libraries analysed before it, and the
+        # elaboration sees them all.
+        vhdl_libs = {}
         dpi_sources = []
         sv_libs = []
         for f in src_files:
@@ -108,6 +113,8 @@ class Isimtn(Edatool):
                 vlog_files.append(f.name)
             elif f.file_type.startswith("vhdlSource"):
                 vhdl_files.append(f.name)
+                lib = getattr(f, "logical_name", None) or "work"
+                vhdl_libs.setdefault(lib, []).append(f.name)
             elif f.file_type in ["cSource", "cppSource"]:
                 dpi_sources.append(f.name)
             elif f.file_type == "dpiLibrary":
@@ -127,11 +134,21 @@ class Isimtn(Edatool):
             for name in vlog_files:
                 f.write(name + "\n")
         config_files = [self.name + ".f"]
-        if vhdl_files:
-            with open(os.path.join(self.work_root, self.name + ".vhdl.f"), "w") as f:
-                for name in vhdl_files:
+        vcom_steps = []
+        seen_libs = []
+        for lib, names in vhdl_libs.items():
+            cfg = "{}.vhdl.{}.f".format(self.name, lib)
+            with open(os.path.join(self.work_root, cfg), "w") as f:
+                for name in names:
                     f.write(name + "\n")
-            config_files.append(self.name + ".vhdl.f")
+            config_files.append(cfg)
+            vcom_steps.append(
+                "$(ISIM_VCOM) -work isim_work -lib {}{} $(ISIM_COMMON) $(ISIM_VCOM_OPTIONS) -f {}".format(
+                    lib, "".join(" -L " + l for l in seen_libs), cfg
+                )
+            )
+            seen_libs.append(lib)
+        other_libs = [l for l in vhdl_libs if l != "work"]
 
         common = []
         timescale = self.tool_options.get("timescale")
@@ -171,6 +188,7 @@ class Isimtn(Edatool):
             f.write("ISIM_ELAB_OPTIONS  := {}\n".format(opts("isim_elab_options")))
             f.write("ISIM_RUN_OPTIONS   := {}\n".format(opts("isim_run_options")))
             f.write("ISIM_DEFPARAMS     := {}\n".format(" ".join(defparams)))
+            f.write("ISIM_LIBS          := {}\n".format(" ".join("-L " + l for l in other_libs)))
             f.write("ISIM_SV_LIBS       := {}\n".format(" ".join("+sv_lib=" + lib for lib in sv_libs)))
             f.write("ISIM_DPI_CFLAGS    := {}\n".format(opts("dpi_cflags")))
             f.write("ISIM_DPI_LDFLAGS   := {}\n".format(opts("dpi_ldflags")))
@@ -178,11 +196,7 @@ class Isimtn(Edatool):
             f.write("DPI_INCDIRS        := {}\n".format(" ".join("-I" + d for d in incdirs) if dpi_sources else ""))
             f.write("DPI_LIB            := {}\n".format("isimtn_dpi.so" if dpi_sources else ""))
             f.write(
-                "VCOM_STEP          := {}\n".format(
-                    "$(ISIM_VCOM) -work isim_work -lib work $(ISIM_COMMON) $(ISIM_VCOM_OPTIONS) -f $(TARGET).vhdl.f"
-                    if vhdl_files
-                    else "true"
-                )
+                "VCOM_STEP          := {}\n".format(" && ".join(vcom_steps) if vcom_steps else "true")
             )
             f.write(
                 "VLOG_STEP          := {}\n".format(

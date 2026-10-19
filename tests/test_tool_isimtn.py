@@ -17,7 +17,7 @@ def test_tool_isimtn(tool_fixture):
     tf = tool_fixture("isimtn", tool_options=tool_options)
 
     tf.tool.configure()
-    tf.compare_config_files(["design.f", "design.vhdl.f"])
+    tf.compare_config_files(["design.f", "design.vhdl.work.f", "design.vhdl.libx.f"])
     tf.compare_makefile()
 
     # The run is handed back to the flow: the image, the DPI libraries, the
