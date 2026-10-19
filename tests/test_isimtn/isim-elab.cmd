@@ -1,1 +1,1 @@
--work isim_work -lib work -top top_module -sir -timescale 1ns/1ps -uvm 1.2 -defparam top_module.vlogparam_bool=1 -defparam top_module.vlogparam_int=42 -defparam top_module.vlogparam_str="hello" some isim_elab_options
+-work isim_work -lib work -L libx -top top_module -sir -timescale 1ns/1ps -uvm 1.2 -defparam top_module.vlogparam_bool=1 -defparam top_module.vlogparam_int=42 -defparam top_module.vlogparam_str="hello" some isim_elab_options

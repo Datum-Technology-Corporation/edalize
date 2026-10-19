@@ -18,7 +18,7 @@ def test_isimtn(make_edalize_test, monkeypatch):
     tf = make_edalize_test("isimtn", test_name=name, tool_options=tool_options)
 
     tf.backend.configure()
-    tf.compare_files(["Makefile", name + ".f", name + ".vhdl.f"])
+    tf.compare_files(["Makefile", name + ".f", name + ".vhdl.work.f", name + ".vhdl.libx.f"])
 
     # The DPI library is linked with the compiler the Makefile names; the
     # mock records its arguments like every other mocked tool.

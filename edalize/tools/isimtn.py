@@ -73,6 +73,9 @@ class Isimtn(Edatool):
         incdirs = []
         vlog_files = []
         vhdl_files = []
+        # VHDL by LOGICAL LIBRARY (a file's logical_name; `work` when none),
+        # in order of first appearance -- see the legacy backend.
+        vhdl_libs = {}
         dpi_sources = []
         dpi_incdirs = []
         sv_libs = []
@@ -89,6 +92,7 @@ class Isimtn(Edatool):
                 depfiles.append(f["name"])
             elif file_type.startswith("vhdlSource"):
                 vhdl_files.append(f["name"])
+                vhdl_libs.setdefault(f.get("logical_name") or "work", []).append(f["name"])
                 depfiles.append(f["name"])
             elif file_type in ["cSource", "cppSource"]:
                 # A header (is_include_file) is a -I for the DPI compile, not
@@ -130,7 +134,10 @@ class Isimtn(Edatool):
         for name in vlog_files:
             vlog_f.write(name + "\n")
         self.vlog_f = vlog_f.getvalue()
-        self.vhdl_f = "".join(name + "\n" for name in vhdl_files)
+        self.vhdl_fs = {
+            "{}.vhdl.{}.f".format(self.name, lib): "".join(name + "\n" for name in names)
+            for lib, names in vhdl_libs.items()
+        }
 
         commands = EdaCommands()
 
@@ -139,14 +146,18 @@ class Isimtn(Edatool):
         analysed = self.name + ".analysed"
         analyse = []
         config_files = [self.name + ".f"]
-        if vhdl_files:
-            config_files.append(self.name + ".vhdl.f")
+        seen_libs = []
+        for lib in vhdl_libs:
+            cfg = "{}.vhdl.{}.f".format(self.name, lib)
+            config_files.append(cfg)
+            cmd = ["isim-vcom", "-work", "isim_work", "-lib", lib]
+            for l in seen_libs:
+                cmd += ["-L", l]
             analyse.append(
-                ["isim-vcom", "-work", "isim_work", "-lib", "work"]
-                + common
-                + self.tool_options.get("isim_vcom_options", [])
-                + ["-f", self.name + ".vhdl.f"]
+                cmd + common + self.tool_options.get("isim_vcom_options", []) + ["-f", cfg]
             )
+            seen_libs.append(lib)
+        other_libs = [l for l in vhdl_libs if l != "work"]
         if vlog_files:
             analyse.append(
                 ["isim-vlog", "-work", "isim_work", "-lib", "work"]
@@ -184,6 +195,8 @@ class Isimtn(Edatool):
         # double-quoted literal to isim-elab, and bare quotes would be eaten.
         tops = self.toplevel.split()
         elab = ["isim-elab", "-work", "isim_work", "-lib", "work"]
+        for l in other_libs:
+            elab += ["-L", l]
         for top in tops:
             elab += ["-top", top]
         elab += ["-sir"] + common
@@ -209,8 +222,8 @@ class Isimtn(Edatool):
 
     def write_config_files(self):
         self.update_config_file(self.name + ".f", self.vlog_f)
-        if self.vhdl_f:
-            self.update_config_file(self.name + ".vhdl.f", self.vhdl_f)
+        for cfg, text in self.vhdl_fs.items():
+            self.update_config_file(cfg, text)
 
     def run(self):
         return (self.run_command[0], self.run_command[1:], self.work_root)

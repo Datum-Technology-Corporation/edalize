@@ -1,6 +1,6 @@
 TARGET             := test_isimtn_0
 TOPLEVEL           := -top top_module
-CONFIG_FILES       := test_isimtn_0.f test_isimtn_0.vhdl.f
+CONFIG_FILES       := test_isimtn_0.f test_isimtn_0.vhdl.work.f test_isimtn_0.vhdl.libx.f
 ISIM               ?= isim
 ISIM_VLOG          ?= isim-vlog
 ISIM_VCOM          ?= isim-vcom
@@ -12,13 +12,14 @@ ISIM_VCOM_OPTIONS  := some isim_vcom_options
 ISIM_ELAB_OPTIONS  := some isim_elab_options
 ISIM_RUN_OPTIONS   := +sv_lib=../../../tb/model.so
 ISIM_DEFPARAMS     := -defparam 'top_module.vlogparam_bool=1' -defparam 'top_module.vlogparam_int=42' -defparam 'top_module.vlogparam_str="hello"'
+ISIM_LIBS          := -L libx
 ISIM_SV_LIBS       := +sv_lib=libdpi.so +sv_lib=isimtn_dpi.so
 ISIM_DPI_CFLAGS    := -O2
 ISIM_DPI_LDFLAGS   := -lutil
 DPI_SOURCES        := c_file.c cpp_file.cpp
 DPI_INCDIRS        := -I.
 DPI_LIB            := isimtn_dpi.so
-VCOM_STEP          := $(ISIM_VCOM) -work isim_work -lib work $(ISIM_COMMON) $(ISIM_VCOM_OPTIONS) -f $(TARGET).vhdl.f
+VCOM_STEP          := $(ISIM_VCOM) -work isim_work -lib work $(ISIM_COMMON) $(ISIM_VCOM_OPTIONS) -f test_isimtn_0.vhdl.work.f && $(ISIM_VCOM) -work isim_work -lib libx -L work $(ISIM_COMMON) $(ISIM_VCOM_OPTIONS) -f test_isimtn_0.vhdl.libx.f
 VLOG_STEP          := $(ISIM_VLOG) -work isim_work -lib work $(ISIM_COMMON) $(ISIM_VLOG_OPTIONS) -f $(TARGET).f
 EXTRA_OPTIONS      ?= +plusarg_bool=1 +plusarg_int=42 +plusarg_str=hello
 
@@ -30,7 +31,7 @@ $(TARGET).analysed: $(CONFIG_FILES)
 	touch $@
 
 $(TARGET).elab: $(TARGET).analysed $(DPI_LIB)
-	$(ISIM_ELAB) -work isim_work -lib work $(TOPLEVEL) -sir $(ISIM_COMMON) $(ISIM_DEFPARAMS) $(ISIM_ELAB_OPTIONS)
+	$(ISIM_ELAB) -work isim_work -lib work $(ISIM_LIBS) $(TOPLEVEL) -sir $(ISIM_COMMON) $(ISIM_DEFPARAMS) $(ISIM_ELAB_OPTIONS)
 	touch $@
 
 isimtn_dpi.so: $(DPI_SOURCES)

@@ -5,8 +5,9 @@ ISIM_DPI_CC ?= cc
 
 all: isim_work/a.out.so
 
-design.analysed: design.f design.vhdl.f sv_file.sv vlog_file.v vlog_with_define.v vlog05_file.v vlog_incfile vhdl_file.vhd vhdl_lfile vhdl2008_file another_sv_file.sv
-	$(EDALIZE_LAUNCHER) isim-vcom -work isim_work -lib work -f design.vhdl.f
+design.analysed: design.f design.vhdl.work.f design.vhdl.libx.f sv_file.sv vlog_file.v vlog_with_define.v vlog05_file.v vlog_incfile vhdl_file.vhd vhdl_lfile vhdl2008_file another_sv_file.sv
+	$(EDALIZE_LAUNCHER) isim-vcom -work isim_work -lib work -f design.vhdl.work.f
+	$(EDALIZE_LAUNCHER) isim-vcom -work isim_work -lib libx -L work -f design.vhdl.libx.f
 	$(EDALIZE_LAUNCHER) isim-vlog -work isim_work -lib work -f design.f
 	$(EDALIZE_LAUNCHER) touch design.analysed
 
@@ -14,4 +15,4 @@ isimtn_dpi.so: c_file.c cpp_file.cpp
 	$(EDALIZE_LAUNCHER) $(ISIM_DPI_CC) -shared -fPIC -I. -o isimtn_dpi.so c_file.c cpp_file.cpp
 
 isim_work/a.out.so: design.analysed isimtn_dpi.so
-	$(EDALIZE_LAUNCHER) isim-elab -work isim_work -lib work -top top1 -top top2 -sir -defparam 'top1.vlogparam_bool=1' -defparam 'top2.vlogparam_bool=1' -defparam 'top1.vlogparam_int=42' -defparam 'top2.vlogparam_int=42' -defparam 'top1.vlogparam_str="hello"' -defparam 'top2.vlogparam_str="hello"'
+	$(EDALIZE_LAUNCHER) isim-elab -work isim_work -lib work -L libx -top top1 -top top2 -sir -defparam 'top1.vlogparam_bool=1' -defparam 'top2.vlogparam_bool=1' -defparam 'top1.vlogparam_int=42' -defparam 'top2.vlogparam_int=42' -defparam 'top1.vlogparam_str="hello"' -defparam 'top2.vlogparam_str="hello"'
