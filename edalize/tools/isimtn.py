@@ -199,7 +199,7 @@ class Isimtn(Edatool):
             elab += ["-L", l]
         for top in tops:
             elab += ["-top", top]
-        elab += ["-sir"] + common
+        elab += common
         for key, value in self.vlogparam.items():
             for top in tops:
                 elab += [

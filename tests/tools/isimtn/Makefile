@@ -15,4 +15,4 @@ isimtn_dpi.so: c_file.c cpp_file.cpp
 	$(EDALIZE_LAUNCHER) $(ISIM_DPI_CC) -shared -fPIC -O2 -I. -o isimtn_dpi.so c_file.c cpp_file.cpp -lutil
 
 isim_work/a.out.so: design.analysed isimtn_dpi.so
-	$(EDALIZE_LAUNCHER) isim-elab -work isim_work -lib work -L libx -top top_module -sir -timescale 1ns/1ps -uvm 1.2 -defparam 'top_module.vlogparam_bool=1' -defparam 'top_module.vlogparam_int=42' -defparam 'top_module.vlogparam_str="hello"' some isim_elab_options
+	$(EDALIZE_LAUNCHER) isim-elab -work isim_work -lib work -L libx -top top_module -timescale 1ns/1ps -uvm 1.2 -defparam 'top_module.vlogparam_bool=1' -defparam 'top_module.vlogparam_int=42' -defparam 'top_module.vlogparam_str="hello"' some isim_elab_options

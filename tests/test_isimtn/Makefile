@@ -31,7 +31,7 @@ $(TARGET).analysed: $(CONFIG_FILES)
 	touch $@
 
 $(TARGET).elab: $(TARGET).analysed $(DPI_LIB)
-	$(ISIM_ELAB) -work isim_work -lib work $(ISIM_LIBS) $(TOPLEVEL) -sir $(ISIM_COMMON) $(ISIM_DEFPARAMS) $(ISIM_ELAB_OPTIONS)
+	$(ISIM_ELAB) -work isim_work -lib work $(ISIM_LIBS) $(TOPLEVEL) $(ISIM_COMMON) $(ISIM_DEFPARAMS) $(ISIM_ELAB_OPTIONS)
 	touch $@
 
 isimtn_dpi.so: $(DPI_SOURCES)
